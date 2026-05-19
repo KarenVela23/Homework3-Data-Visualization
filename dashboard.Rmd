@@ -1,0 +1,91 @@
+---
+title: "Homework 3"
+author: "Karen Velasquez"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: rows
+    vertical_layout: fill
+---
+
+```{r}
+library(flexdashboard)
+library(tidyverse)
+library(readxl)
+
+schools <- read_excel(
+  "ncesdata_MASS_202425 (1).xlsx",
+  skip = 11
+)
+
+schools <- schools |>
+  mutate(
+    Teachers = as.numeric(Teachers)
+  )
+
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Most Massachusetts schools are located in suburban areas
+
+```{r}
+locale_data <- schools |>
+  count(Locale) |>
+  mutate(percent = round(n / sum(n) * 100, 1))
+
+ggplot(locale_data,
+       aes(x = reorder(Locale, n),
+           y = n)) +
+  geom_col(fill = "#6F4E9C") +
+  geom_text(aes(label = paste0(percent, "%")),
+            hjust = -0.1,
+            color = "black",
+            size = 3.5) +
+  coord_flip() +
+  scale_y_continuous(
+    breaks = seq(0, 1400, 200)
+  ) +
+  expand_limits(y = max(locale_data$n) * 1.18) +
+  labs(
+    title = "Massachusetts Schools by Type of Location",
+    x = "School Location Type",
+    y = "Number of Schools",
+    caption = "Source: NCES Massachusetts school data"
+  ) +
+  theme_minimal() +
+  theme(
+    panel.grid = element_blank(),
+    plot.caption = element_text(size = 6, hjust = 1)
+  )
+```
+
+### Most Massachusetts schools have fewer than 100 teachers
+
+```{r}
+teacher_data <- schools |>
+  filter(!is.na(Teachers))
+
+ggplot(teacher_data,
+       aes(x = Teachers)) +
+  geom_histogram(
+    binwidth = 10,
+    fill = "#D9822B",
+    color = "white"
+  ) +
+  scale_x_continuous(
+    breaks = seq(0, 250, 50),
+    limits = c(0, 250)
+  ) +
+  labs(
+    title = "Number of Teachers per School in Massachusetts",
+    x = "Number of Teachers per School",
+    y = "Number of Schools",
+    caption = "Source: NCES Massachusetts school data"
+  ) +
+  theme_minimal() +
+  theme(
+    panel.grid = element_blank(),
+    plot.caption = element_text(size = 6, hjust = 1)
+  )
+```
